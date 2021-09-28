@@ -23,39 +23,35 @@ const toCSV = async (arr) => new Promise(resolve => stringify(arr, {
 
 const withAdditionalField = ({arr, fn}) => arr.map(a => ({...(fn(a)), ...a}))
 
+const compareNumbers = (a,b) => {
+  if(a > b){
+    return 1;
+  } else if(a < b){
+    return -1;
+  } else {
+    return 0;
+  }
+};
+
+const mapNumbers = (obj) => {
+  const n = [
+    parseInt(obj['number-1'], 10),
+    parseInt(obj['number-2'], 10),
+    parseInt(obj['number-3'], 10),
+    parseInt(obj['number-4'], 10),
+    parseInt(obj['number-5'], 10)
+  ].sort(compareNumbers);
+
+  const ez = [
+    parseInt(obj['euro-number-1'], 10),
+    parseInt(obj['euro-number-2'], 10)
+  ].sort(compareNumbers);
+
+  return `${n[0]}-${n[1]}-${n[2]}-${n[3]}-${n[4]}:${ez[0]}:${ez[1]}`;
+}
 
 await (async () => {
 
-  const mapNumbers = (obj) => {
-    const n = [
-      parseInt(obj['number-1'], 10),
-      parseInt(obj['number-2'], 10),
-      parseInt(obj['number-3'], 10),
-      parseInt(obj['number-4'], 10),
-      parseInt(obj['number-5'], 10)
-    ].sort((a,b) => {
-      if(a > b){
-        return 1;
-      } else if(a < b){
-        return -1;
-      } else {
-        return 0;
-      }
-    });
-    const ez = [
-      parseInt(obj['euro-number-1'], 10),
-      parseInt(obj['euro-number-2'], 10)
-    ].sort((a,b) => {
-      if(a > b){
-        return 1;
-      } else if(a < b){
-        return -1;
-      } else {
-        return 0;
-      }
-    });
-    return `${n[0]}-${n[1]}-${n[2]}-${n[3]}-${n[4]}:${ez[0]}:${ez[1]}`;
-  }
 
   const csv = [
     withAdditionalField({
@@ -90,6 +86,22 @@ await (async () => {
       arr: await fromCSV(await readFile('Eurojackpot - 2019.csv')),
       fn: (a) => ({year: '2019', numbers: mapNumbers(a)})
     }),
+  ].flat();
+
+  await fs.writeFile(join(__dirname, 'gen-2019.csv'), await toCSV(csv));
+})();
+
+await (async () => {
+
+  const csv = [
+    withAdditionalField({
+      arr: await fromCSV(await readFile('EJ_ab_2020 - 2020.csv')),
+      fn: (a) => ({year: '2020', numbers: mapNumbers(a)})
+    }),
+    withAdditionalField({
+      arr: await fromCSV(await readFile('EJ_ab_2020 - 2021.csv')),
+      fn: (a) => ({year: '2021', numbers: mapNumbers(a)})
+    })
   ].flat();
 
   await fs.writeFile(join(__dirname, 'gen.csv'), await toCSV(csv));
