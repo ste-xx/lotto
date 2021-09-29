@@ -23,31 +23,39 @@
   <script type="module"
           src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.0.0-beta.52/dist/shoelace.js"></script>
   <script type="module" src="https://unpkg.com/@microsoft/fast-components"></script>
+  <script src="https://unpkg.com/vue@next"></script>
 
   <meta name="theme-color" content="#fafafa">
 </head>
 
 <body>
+<h1>Euro Jackpot</h1>
 
 <div style="display: flex">
   <fieldset style="display: flex;">
     <legend>numbers</legend>
-    <sl-input placeholder="number"></sl-input>
-    <sl-input placeholder="number"></sl-input>
-    <sl-input placeholder="number"></sl-input>
-    <sl-input placeholder="number"></sl-input>
-    <sl-input placeholder="number"></sl-input>
+    <sl-input id="number-1" placeholder="number"></sl-input>
+    <sl-input id="number-2" placeholder="number"></sl-input>
+    <sl-input id="number-3" placeholder="number"></sl-input>
+    <sl-input id="number-4" placeholder="number"></sl-input>
+    <sl-input id="number-5" placeholder="number"></sl-input>
   </fieldset>
   <fieldset style="display: flex;">
     <legend>ez</legend>
-    <sl-input placeholder="ez"></sl-input>
-    <sl-input placeholder="ez"></sl-input>
+    <sl-input id="ez-1" placeholder="ez"></sl-input>
+    <sl-input id="ez-2" placeholder="ez"></sl-input>
   </fieldset>
-
-
 </div>
+<div id="result">
+</div>
+<fast-data-grid id="resultGrid" style="background-color: black"></fast-data-grid>
 
-<fast-data-grid id="samplegrid" style="background-color: black"></fast-data-grid>
+
+<h1>2020-today</h1>
+<fast-data-grid id="grid" style="background-color: black"></fast-data-grid>
+<h1>2012-2019</h1>
+<fast-data-grid id="archiveGrid" style="background-color: black"></fast-data-grid>
+
 <script>
   (function () {
   })();
@@ -57,12 +65,111 @@
   import eurojackpot from "./gen/eurojackpot.json" assert {type: "json"};
   import eurojackpotOld from "./gen/eurojackpot-2012-2019.json" assert {type: "json"};
 
-  const sampleGrid = document.getElementById("samplegrid");
-  sampleGrid.rowsData = eurojackpot;
+  const {ref, watch} = window.Vue;
 
-  console.warn('wot');
-  console.warn(eurojackpot);
-  console.warn(eurojackpotOld);
+  const withAdditionalField = ({arr, fn}) => arr.map(a => ({...(fn(a)), ...a}))
+
+  const calcWinnerClass = (numberOfMatchesFiveNumbers, numberOfMatchedEzNumbers) => {
+    if (numberOfMatchesFiveNumbers === 5 && numberOfMatchedEzNumbers === 2) return 1;
+    else if (numberOfMatchesFiveNumbers === 5 && numberOfMatchedEzNumbers === 1) return 2;
+    else if (numberOfMatchesFiveNumbers === 5 && numberOfMatchedEzNumbers === 0) return 3;
+    else if (numberOfMatchesFiveNumbers === 4 && numberOfMatchedEzNumbers === 2) return 4;
+    else if (numberOfMatchesFiveNumbers === 4 && numberOfMatchedEzNumbers === 1) return 5;
+    else if (numberOfMatchesFiveNumbers === 4 && numberOfMatchedEzNumbers === 0) return 6;
+    else if (numberOfMatchesFiveNumbers === 3 && numberOfMatchedEzNumbers === 2) return 7;
+    else if (numberOfMatchesFiveNumbers === 2 && numberOfMatchedEzNumbers === 2) return 8;
+    else if (numberOfMatchesFiveNumbers === 3 && numberOfMatchedEzNumbers === 1) return 9;
+    else if (numberOfMatchesFiveNumbers === 3 && numberOfMatchedEzNumbers === 0) return 10;
+    else if (numberOfMatchesFiveNumbers === 1 && numberOfMatchedEzNumbers === 2) return 11;
+    else if (numberOfMatchesFiveNumbers === 2 && numberOfMatchedEzNumbers === 1) return 12;
+    else return 13;
+  };
+
+  const findBestMatch = (arr, fiveNumbers, ezNumbers) => {
+    const newArr = withAdditionalField({
+      arr,
+      fn: (obj) => {
+        return {
+          numberSet: new Set([
+            parseInt(obj['number-1'], 10),
+            parseInt(obj['number-2'], 10),
+            parseInt(obj['number-3'], 10),
+            parseInt(obj['number-4'], 10),
+            parseInt(obj['number-5'], 10)
+          ]),
+          numberSetEz: new Set([
+            parseInt(obj['euro-number-1'], 10),
+            parseInt(obj['euro-number-2'], 10)
+          ])
+        }
+      }
+    });
+    return newArr.reduce((acc, {id, numberSet, numberSetEz, numbers}) => {
+      const numberOfMatchesFiveNumbers = fiveNumbers.reduce((acc, cur) => acc + (numberSet.has(cur) ? 1 : 0), 0);
+      const numberOfMatchedEzNumbers = ezNumbers.reduce((acc, cur) => acc + (numberSetEz.has(cur) ? 1 : 0), 0);
+
+      const winnerClass = calcWinnerClass(numberOfMatchesFiveNumbers, numberOfMatchedEzNumbers);
+
+      return winnerClass > acc.winnerClass ? acc : {
+        id,
+        winnerClass,
+        numberOfMatchesFiveNumbers,
+        numberOfMatchedEzNumbers,
+        numbers,
+        fiveNumbers,
+        ezNumbers
+      }
+    }, {winnerClass: 13, id: "-1"});
+  };
+
+
+  document.querySelector("#grid").rowsData = eurojackpot;
+  document.querySelector("#archiveGrid").rowsData = eurojackpotOld;
+
+  const number1 = ref(0);
+  const number2 = ref(0);
+  const number3 = ref(0);
+  const number4 = ref(0);
+  const number5 = ref(0);
+  const ez1 = ref(0);
+  const ez2 = ref(0);
+
+  [
+    [number1, document.querySelector('#number-1')],
+    [number2, document.querySelector('#number-2')],
+    [number3, document.querySelector('#number-3')],
+    [number4, document.querySelector('#number-4')],
+    [number5, document.querySelector('#number-5')],
+    [ez1, document.querySelector('#ez-1')],
+    [ez2, document.querySelector('#ez-2')]
+  ].forEach(([ref, el]) => el.addEventListener('sl-input', () => ref.value = el.value))
+
+
+  watch([number1, number2, number3, number4, number5, ez1, ez2], ([number1, number2, number3, number4, number5, ez1, ez2]) => {
+    const bestResult = findBestMatch([...eurojackpot, ...eurojackpotOld], [
+        parseInt(number1, 10),
+        parseInt(number2, 10),
+        parseInt(number3, 10),
+        parseInt(number4, 10),
+        parseInt(number5, 10)
+      ],
+      [
+        parseInt(ez1, 10),
+        parseInt(ez2, 10)]);
+
+    document.querySelector('#result').innerHTML = `
+    <h2>best result: </h2>
+    <div>
+      <div> Winner Class: ${bestResult.winnerClass} </div>
+      <div> Numbers: ${bestResult.numbers} </div>
+      <div> Id: ${bestResult.id} </div>
+    </div>
+  `;
+    // [11,20,38,41,44], [4,7]
+    console.warn([...eurojackpot, ...eurojackpotOld].find((e)=> e.id === bestResult.id));
+    document.querySelector("#resultGrid").rowsData = [[...eurojackpot, ...eurojackpotOld].find((e)=> e.id === bestResult.id)];
+  });
+
 </script>
 
 </body>
