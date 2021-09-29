@@ -1,5 +1,5 @@
 <!doctype html>
-<html class="no-js" lang="">
+<html class="no-js" lang="" style=" background-color: ghostwhite;">
 
 <head>
   <meta charset="utf-8">
@@ -18,24 +18,53 @@
 
   <link rel="stylesheet" href="css/normalize.css">
   <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.0.0-beta.52/dist/themes/light.css">
+  <script type="module"
+          src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.0.0-beta.52/dist/shoelace.js"></script>
+  <script type="module" src="https://unpkg.com/@microsoft/fast-components"></script>
 
   <meta name="theme-color" content="#fafafa">
 </head>
 
 <body>
 
-  <!-- Add your site or application content here -->
-  <p>Hello world! This is HTML5 Boilerplate.</p>
-  <script src="js/vendor/modernizr-3.11.2.min.js"></script>
-  <script src="js/plugins.js"></script>
-  <script src="js/main.js"></script>
+<div style="display: flex">
+  <fieldset style="display: flex;">
+    <legend>numbers</legend>
+    <sl-input placeholder="number"></sl-input>
+    <sl-input placeholder="number"></sl-input>
+    <sl-input placeholder="number"></sl-input>
+    <sl-input placeholder="number"></sl-input>
+    <sl-input placeholder="number"></sl-input>
+  </fieldset>
+  <fieldset style="display: flex;">
+    <legend>ez</legend>
+    <sl-input placeholder="ez"></sl-input>
+    <sl-input placeholder="ez"></sl-input>
+  </fieldset>
 
-  <!-- Google Analytics: change UA-XXXXX-Y to be your site's ID. -->
-  <script>
-    window.ga = function () { ga.q.push(arguments) }; ga.q = []; ga.l = +new Date;
-    ga('create', 'UA-XXXXX-Y', 'auto'); ga('set', 'anonymizeIp', true); ga('set', 'transport', 'beacon'); ga('send', 'pageview')
-  </script>
-  <script src="https://www.google-analytics.com/analytics.js" async></script>
+
+</div>
+
+<fast-data-grid id="samplegrid" style="background-color: black"></fast-data-grid>
+<script>
+  (function () {
+  })();
+</script>
+
+<script type="module">
+  import eurojackpot from "./gen/eurojackpot.json" assert {type: "json"};
+  import eurojackpotOld from "./gen/eurojackpot-2012-2019.json" assert {type: "json"};
+
+  const sampleGrid = document.getElementById("samplegrid");
+  sampleGrid.rowsData = eurojackpot;
+
+  console.warn('wot');
+  console.warn(eurojackpot);
+  console.warn(eurojackpotOld);
+</script>
+
 </body>
 
 </html>
