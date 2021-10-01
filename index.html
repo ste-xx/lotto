@@ -1,5 +1,5 @@
 <!doctype html>
-<html class="no-js" lang="" style=" background-color: ghostwhite;">
+<html class="no-js" lang="">
 
 <head>
   <meta charset="utf-8">
@@ -18,43 +18,41 @@
 
   <link rel="stylesheet" href="css/normalize.css">
   <link rel="stylesheet" href="css/main.css">
-  <link rel="stylesheet"
-        href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.0.0-beta.52/dist/themes/light.css">
-  <script type="module"
-          src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.0.0-beta.52/dist/shoelace.js"></script>
+
   <script type="module" src="https://unpkg.com/@microsoft/fast-components"></script>
   <script src="https://unpkg.com/vue@next"></script>
 
-  <meta name="theme-color" content="#fafafa">
+
 </head>
 
 <body>
 <h1>Euro Jackpot</h1>
 
-<div style="display: flex">
-  <fieldset style="display: flex;">
-    <legend>numbers</legend>
-    <sl-input id="number-1" placeholder="number"></sl-input>
-    <sl-input id="number-2" placeholder="number"></sl-input>
-    <sl-input id="number-3" placeholder="number"></sl-input>
-    <sl-input id="number-4" placeholder="number"></sl-input>
-    <sl-input id="number-5" placeholder="number"></sl-input>
+<div style="display: flex; gap:8px;">
+  <fieldset style="display: flex; gap:8px;">
+    <legend>5 from 50</legend>
+    <fast-number-field id="number-1" placeholder="Between 1 and 50" min="1" max="50"></fast-number-field>
+    <fast-number-field id="number-2" placeholder="Between 1 and 50" min="1" max="50"></fast-number-field>
+    <fast-number-field id="number-3" placeholder="Between 1 and 50" min="1" max="50"></fast-number-field>
+    <fast-number-field id="number-4" placeholder="Between 1 and 50" min="1" max="50"></fast-number-field>
+    <fast-number-field id="number-5" placeholder="Between 1 and 50" min="1" max="50"></fast-number-field>
   </fieldset>
-  <fieldset style="display: flex;">
-    <legend>ez</legend>
-    <sl-input id="ez-1" placeholder="ez"></sl-input>
-    <sl-input id="ez-2" placeholder="ez"></sl-input>
+  <fieldset style="display: flex; gap:8px;">
+    <legend>2 from 10</legend>
+    <fast-number-field id="ez-1" placeholder="Between 1 and 10" min="1" max="10"></fast-number-field>
+    <fast-number-field id="ez-2" placeholder="Between 1 and 10" min="1" max="50"></fast-number-field>
   </fieldset>
 </div>
 <div id="result">
 </div>
-<fast-data-grid id="resultGrid" style="background-color: black"></fast-data-grid>
+<fast-data-grid id="resultGrid" grid-template-columns="repeat(99, 200px)" style="display: none"></fast-data-grid>
+<fast-data-grid id="resultGridArchive" grid-template-columns="repeat(99, 200px)" style="display: none"></fast-data-grid>
 
 
 <h1>2020-today</h1>
-<fast-data-grid id="grid" style="background-color: black"></fast-data-grid>
+<fast-data-grid id="grid" darkmode="false" grid-template-columns="repeat(99, 200px)"></fast-data-grid>
 <h1>2012-2019</h1>
-<fast-data-grid id="archiveGrid" style="background-color: black"></fast-data-grid>
+<fast-data-grid id="archiveGrid" grid-template-columns="repeat(99, 200px)"></fast-data-grid>
 
 <script>
   (function () {
@@ -142,7 +140,7 @@
     [number5, document.querySelector('#number-5')],
     [ez1, document.querySelector('#ez-1')],
     [ez2, document.querySelector('#ez-2')]
-  ].forEach(([ref, el]) => el.addEventListener('sl-input', () => ref.value = el.value))
+  ].forEach(([ref, el]) => el.addEventListener('change', () => ref.value = el.value))
 
 
   watch([number1, number2, number3, number4, number5, ez1, ez2], ([number1, number2, number3, number4, number5, ez1, ez2]) => {
@@ -166,8 +164,19 @@
     </div>
   `;
     // [11,20,38,41,44], [4,7]
-    console.warn([...eurojackpot, ...eurojackpotOld].find((e)=> e.id === bestResult.id));
-    document.querySelector("#resultGrid").rowsData = [[...eurojackpot, ...eurojackpotOld].find((e)=> e.id === bestResult.id)];
+    const best = [...eurojackpot, ...eurojackpotOld].find((e)=> e.id === bestResult.id);
+    const isArchiveResult = (best) => best.day !== undefined;
+
+    if(isArchiveResult(best)){
+      document.querySelector("#resultGrid").style.display = "none";
+      document.querySelector("#resultGridArchive").rowsData = [best];
+      document.querySelector("#resultGridArchive").style.display = "block";
+    } else {
+      document.querySelector("#resultGridArchive").style.display = "none";
+      document.querySelector("#resultGrid").rowsData = [best];
+      document.querySelector("#resultGrid").style.display = "block";
+    }
+
   });
 
 </script>
